@@ -14,6 +14,7 @@ import type { CanvasData, CanvasPageOptions } from "./types";
 
 function renderMarkdown(text: string): string {
   return micromark(text, {
+    allowDangerousHtml: true,
     extensions: [gfm()],
     htmlExtensions: [gfmHtml()],
   });
