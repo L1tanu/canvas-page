@@ -11708,6 +11708,7 @@ var CanvasBody_default = ((userOpts) => {
 // src/pageType.ts
 function renderMarkdown(text5) {
   return micromark(text5, {
+    allowDangerousHtml: true,
     extensions: [gfm()],
     htmlExtensions: [gfmHtml()]
   });
