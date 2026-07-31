@@ -18,23 +18,19 @@
   cursor: grab;
   user-select: none;
   touch-action: none;
-
   &:active {
     cursor: grabbing;
   }
 }
-
+.canvas-node-content {
+  user-select: text;
+  cursor: text;
+}
 .canvas-viewport {
   position: absolute;
   top: 0;
   left: 0;
   transform-origin: 0 0;
-}
-
-.canvas-nodes {
-  position: absolute;
-  top: 0;
-  left: 0;
 }
 
 .canvas-node {

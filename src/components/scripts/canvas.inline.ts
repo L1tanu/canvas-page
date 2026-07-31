@@ -91,22 +91,58 @@ function initCanvas() {
         panY = mouseY - (mouseY - panY) * (zoom / prevZoom);
         applyTransform();
         updateResetButton();
-      };
+      };const onWheel = (e: WheelEvent) => {
+		  // If the wheel target is inside a scrollable text node, let it scroll naturally
+		  const scrollable =
+			e.target instanceof HTMLElement ? e.target.closest(".canvas-node-content") : null;
+		  if (scrollable) {
+			const canScroll = scrollable.scrollHeight > scrollable.clientHeight;
+			if (canScroll) {
+			  const atTop = scrollable.scrollTop <= 0;
+			  const atBottom =
+				scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight - 1;
+			  const scrollingDown = e.deltaY > 0;
+			  const scrollingUp = e.deltaY < 0;
+			  // Only let it through to pan/zoom if at boundary AND scrolling past it
+			  if (!(atTop && scrollingUp) && !(atBottom && scrollingDown)) {
+				return; // Let the browser scroll the text node
+			  }
+			}
+		  }
+		  e.preventDefault();
+		  if (e.ctrlKey) {
+			// Ctrl+wheel (or trackpad pinch, which browsers report as ctrlKey: true) — zoom
+			const rect = container.getBoundingClientRect();
+			const mouseX = e.clientX - rect.left;
+			const mouseY = e.clientY - rect.top;
+			const prevZoom = zoom;
+			const delta = e.deltaY > 0 ? 0.9 : 1.1;
+			zoom = Math.max(minZoom, Math.min(maxZoom, zoom * delta));
+			panX = mouseX - (mouseX - panX) * (zoom / prevZoom);
+			panY = mouseY - (mouseY - panY) * (zoom / prevZoom);
+		  } else {
+			// Plain wheel — pan (deltaX gives horizontal for shift+scroll / trackpad)
+			panX -= e.deltaX;
+			panY -= e.deltaY;
+		  }
+		  applyTransform();
+		  updateResetButton();
+		};
 
       const onPointerDown = (e: PointerEvent) => {
-        if (e.button !== 0) return;
-        if (e.target instanceof HTMLElement) {
-          if (e.target.closest("a") || e.target.closest("button")) return;
-        }
-
-        // Don't start panning when clicking on a scrollbar
-        if (e.target instanceof HTMLElement) {
-          const scrollable = e.target.closest(".canvas-node-content");
-          if (scrollable && scrollable.scrollHeight > scrollable.clientHeight) {
-            const rect = scrollable.getBoundingClientRect();
-            if (e.clientX >= rect.right - 16) return;
-          }
-        }
+		  if (e.button !== 0) return;
+		  if (e.target instanceof HTMLElement) {
+			if (e.target.closest("a") || e.target.closest("button")) return;
+		  }
+		  // Don't start panning when clicking inside node text content — let text selection happen
+		  if (e.target instanceof HTMLElement) {
+			if (e.target.closest(".canvas-node-content")) return;
+		  }
+		  isPanning = true;
+		  startX = e.clientX - panX;
+		  startY = e.clientY - panY;
+		  container.setPointerCapture(e.pointerId);
+	};
 
         isPanning = true;
         startX = e.clientX - panX;
